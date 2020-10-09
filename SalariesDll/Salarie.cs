@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.IO;
+using System.Xml.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Globalization;
+//using Newtonsoft.Json;
 
 namespace SalariesDll
 {
-    public class Salarie
+    [Serializable()]
+
+    public partial class Salarie
     {
-        static void Main(string[] args)
-        {
-        }
+
         private string _matricule;
         private string _nom;
         private string _prenom;
@@ -24,27 +30,45 @@ namespace SalariesDll
 
         public string Matricule
         {
-            get => _matricule;
+            get { return (this._matricule); }
             set
             {
-                if (IsMatriculeOk(value)) this._matricule = value;
+                if (!IsMatriculeOk(value)) throw new ApplicationException(string.Format(CultureInfo.CurrentCulture, "Le matricule {0} n'est pas valide.", value));
+                this._matricule = value;
             }
         }
         public string Nom
         {
             get => _nom; set
             {
-                if (IsNomPrenomOk(value)) this._nom = value;
+                if (!IsNomPrenomOk(value)) throw new ApplicationException(string.Format(CultureInfo.CurrentCulture, "Le nom {0} n'est pas au bon format", value)); 
+                this._nom = value;
             }
         }
         public string Prenom
         {
             get => _prenom; set
             {
-                if (IsNomPrenomOk(value)) this._prenom = value;
+                if (!IsNomPrenomOk(value)) throw new ApplicationException(string.Format(CultureInfo.CurrentCulture, "Le prénom {0} n'est pas au bon format", value));
+                this._prenom = value;
             }
         }
-        public decimal SalaireBrut { get => _salaireBrut; set => _salaireBrut = value; }
+        //public decimal SalaireBrut { get => _salaireBrut; set => _salaireBrut = value; }
+
+        public decimal SalaireBrut
+        {
+            get { return (this._salaireBrut); }
+            set
+            {
+                if (_salaireBrut != 0 && _salaireBrut != value)
+                {
+                    OnChangementSalaire(new ChangementSalaireEventArgs(_salaireBrut, value));
+                }
+                _salaireBrut = value;
+            }
+
+        }
+
         public decimal TauxCS
         {
             get => _tauxCS; set
@@ -62,33 +86,45 @@ namespace SalariesDll
         public decimal SalaireNet { get => _salaireBrut * (1 - _tauxCS); }
 
         // mise en places des verifications d'intégrité
-        private bool IsNomPrenomOk(String value)
+        public static bool IsNomPrenomOk(String value)
         {
-            if (value.Length < 3 && value.Length > 30) return false;
-            for (int i =0; i < value.Length; i++)
+            if (value==null || value.Length < 3 && value.Length > 30) return false;
+            for (int i = 0; i < value.Length; i++)
             {
                 if (!char.IsLetter(value[i])) return false;
             }
             return true;
-        }  
-        private bool IsMatriculeOk(String value)
+        }
+        public static bool IsMatriculeOk(String value)
         {
             if (String.IsNullOrEmpty(value) || value.Length != 7) return false;
-            for (int i=0; i < value.Length; i++)
+            for (int i = 0; i < value.Length; i++)
             {
-                if(!char.IsDigit(value[i]) && (i <2 || i > 4)) return false;
-                if(!char.IsLetter(value[i]) && (i > 1 && i < 5)) return false;
+                if (!char.IsDigit(value[i]) && (i < 2 || i > 4)) return false;
+                if (!char.IsLetter(value[i]) && (i > 1 && i < 5)) return false;
             }
             return true;
         }
-        private bool IsTauxCSOk(decimal value)
+        public static bool IsTauxCSOk(decimal value)
         {
             if (value >= 0 && value <= 0.6m) return true;
             return false;
         }
-        private bool IsDateNaissanceOk(DateTime value)
+        public static bool IsDateNaissanceOk(DateTime value)
         {
             if ((value.CompareTo(new DateTime(1900, 01, 01)) < 0) || value.CompareTo(DateTime.Now.AddYears(-15)) > 0) return false;
+            return true;
+        }
+
+        public static bool IsSalarieValide(Salarie salarie)
+        {
+                
+                if (!IsNomPrenomOk(salarie._nom)) return false;
+                if (!IsNomPrenomOk(salarie._prenom)) return false;
+                if (!IsMatriculeOk(salarie._matricule)) return false;
+                if (!IsDateNaissanceOk(salarie._dateNaissance)) return false;
+                if (!IsTauxCSOk(salarie._tauxCS)) return false;
+
             return true;
         }
         // creation constructeur
@@ -113,36 +149,14 @@ namespace SalariesDll
         }
         public override string ToString()
         {
-            return this.Matricule + ";" + this.Nom + ";" + this.Prenom + ";" + this.SalaireBrut + ";" +this.TauxCS +";"+ this.SalaireNet + ";" + this.DateNaissance + ";";
+            return this.Matricule + ";" + this.Nom + ";" + this.Prenom + ";" + this.SalaireBrut + ";" + this.TauxCS + ";" + this.SalaireNet + ";" + this.DateNaissance + ";";
         }
-        //override du hashCode? a quoi ca sert ?
+        //override du hashCode? what is the point ?
         public override int GetHashCode()
         {
-            return 1593405470 + EqualityComparer<string>.Default.GetHashCode(_matricule);
+            return (_matricule != null) ? _matricule.GetHashCode() : 0;
         }
+ 
         #endregion
-    }
-    public class Commercial : Salarie
-    {
-        private decimal _chiffreAffaire;
-        private decimal _commission;
-
-        public decimal ChiffreAffaire { get => _chiffreAffaire; set => _chiffreAffaire = value; }
-        public decimal Commission { get => _commission; set => _commission = value; }
-        
-        //constructeur par défaut 
-        public Commercial() { }
-        //constructeur de recopie heritant du constructeur de base
-        public Commercial(string nom,string prenom, string matricule) : base(nom, prenom, matricule)
-        {
-            Nom = nom;
-            Prenom = prenom;
-            Matricule = matricule;
-        }
-        public override decimal GetSalaireNet()
-        {
-            return base.GetSalaireNet() + (Commission * ChiffreAffaire);
-        }
-    }
-
+    }   
 }

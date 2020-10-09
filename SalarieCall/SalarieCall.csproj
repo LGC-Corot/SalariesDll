@@ -9,4 +9,19 @@
     <ProjectReference Include="..\SalariesDll\SalariesDll.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="ResourceExceptions.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ResourceExceptions.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="ResourceExceptions.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ResourceExceptions.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

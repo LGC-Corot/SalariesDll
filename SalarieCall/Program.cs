@@ -16,9 +16,9 @@ namespace SalarieCall
 
             string dossier = @"C:\Users\CDA\source\repos";
             TestSaveLoadXml(dossier);
-            //Savetxt2(dossier);
-            //Savebin2(dossier);
-            //SaveJson2(dossier);
+            TestSaveLoadtxt(dossier);
+            TestSaveLoadbin(dossier);
+            TestSaveLoadJson(dossier);
 
             // test pour la bonne fonctionnalité de l'evenement
             //new DemoSalaire().Demo();
@@ -85,7 +85,7 @@ namespace SalarieCall
         
 
 
-        private static void TestSaveloadXml(string dossier)
+        private static void TestSaveLoadXml(string dossier)
         {
                 Console.WriteLine(salaries.SaveXml(dossier));
                 salaries.Clear();
@@ -93,7 +93,7 @@ namespace SalarieCall
                 Console.ReadLine();
         }
 
-        private static void Savetxt2(string dossier)
+        private static void TestSaveLoadtxt(string dossier)
         {
             Console.WriteLine(salaries.SaveTxt(dossier));
             salaries.Clear();
@@ -101,13 +101,13 @@ namespace SalarieCall
             
         }
 
-        private static void Savebin2(string dossier)
+        private static void TestSaveLoadbin(string dossier)
         {
             Console.WriteLine(salaries.Savebinarie(dossier));
             salaries.Clear();
             Console.WriteLine(salaries.LoadBinarie(dossier));
         }
-        private static void SaveJson2(string dossier)
+        private static void TestSaveLoadJson(string dossier)
         {
             Console.WriteLine(salaries.SaveJson(dossier));
             salaries.Clear();
